@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Destiny2;
 using Destiny2WeaponMods.Models;
@@ -21,11 +22,14 @@ namespace Destiny2WeaponMods.Controllers
         [HttpGet("{type}/{accountId}", Name = "WeaponModsIndex")]
         public async Task<IActionResult> Index(BungieMembershipType type, long accountId)
         {
-            var inventoryMods = await _weaponMods.GetModsFromInventory(type, accountId);
+            var inventoryModsTask = _weaponMods.GetModsFromInventory(type, accountId);
+            var manifestModsTask = _weaponMods.GetModsFromManifest();
+
+            var modsTask = await Task.WhenAll(inventoryModsTask, manifestModsTask);
 
             var model = new WeaponModsIndexViewModel
             {
-                WeaponMods = inventoryMods,
+                WeaponMods = modsTask[1].OrderBy(mod => mod.DisplayProperties.Name),
             };
             return View(model);
         }

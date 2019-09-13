@@ -5,6 +5,7 @@ using Destiny2;
 using Destiny2.Definitions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Destiny2WeaponMods.Services
 {
@@ -13,20 +14,28 @@ namespace Destiny2WeaponMods.Services
         private readonly IManifest _manifest;
         private readonly IDestiny2 _destiny2;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly ILogger _logger;
 
-        private const uint WeaponModsCategoryHash = 610365472;
+        private const uint WeaponModsDamageCategoryHash = 1052191496;
+        private const uint DummiesCategoryHash = 3109687656;
 
         public WeaponMods(IManifest manifest, IDestiny2 destiny2,
-            IHttpContextAccessor contextAccessor)
+            IHttpContextAccessor contextAccessor, ILogger<WeaponMods> logger)
         {
             _manifest = manifest;
             _destiny2 = destiny2;
             _contextAccessor = contextAccessor;
+            _logger = logger;
         }
         
-        public Task<IEnumerable<DestinyInventoryItemDefinition>> GetModsFromManifest()
+        public async Task<IEnumerable<DestinyInventoryItemDefinition>> GetModsFromManifest()
         {
-            throw new System.NotImplementedException();
+            var manifestMods = await _manifest.LoadInventoryItemsWithCategory(WeaponModsDamageCategoryHash);
+            var filteredMods = manifestMods.Where(mod =>
+                !mod.ItemCategoryHashes.Contains(DummiesCategoryHash) &&
+                !mod.DisplayProperties.Description.Contains("deprecated"));
+
+            return filteredMods;
         }
 
         public async Task<IEnumerable<DestinyInventoryItemDefinition>> GetModsFromInventory(BungieMembershipType type,
@@ -41,7 +50,7 @@ namespace Destiny2WeaponMods.Services
             foreach(var item in inventory.ProfileInventory.Data.Items)
             {
                 var itemDef = await _manifest.LoadInventoryItem(item.ItemHash);
-                if(itemDef.ItemCategoryHashes.Contains(WeaponModsCategoryHash))
+                if(itemDef.ItemCategoryHashes.Contains(WeaponModsDamageCategoryHash))
                 {
                     mods.Add(itemDef);
                 }
