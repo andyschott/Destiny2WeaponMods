@@ -1,17 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Destiny2WeaponMods.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Destiny2WeaponMods.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly ILogger _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+        
         public IActionResult Index()
         {
+            _logger.LogInformation("Index");
+
+            if(User.Identity.IsAuthenticated)
+            {
+                _logger.LogInformation("User is already authenticated. Redirecting to Weapon Mods Index");
+
+                var url = Url.RouteUrl("WeaponModsIndex");
+                return Redirect(url);
+            }
+
             return View();
         }
 

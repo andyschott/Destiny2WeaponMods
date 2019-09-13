@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Destiny2;
+using Destiny2WeaponMods.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,9 +11,21 @@ namespace Destiny2WeaponMods
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IHostingEnvironment environment)
         {
-            Configuration = configuration;
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(environment.ContentRootPath)
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
+                .AddJsonFile("appsettings.local.json", optional: true)
+                .AddEnvironmentVariables();
+
+            if(environment.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
+
+            Configuration = builder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -33,6 +42,27 @@ namespace Destiny2WeaponMods
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.Configure<BungieSettings>(Configuration.GetSection("Bungie"));
+            var bungie = Configuration.GetSection("Bungie").Get<BungieSettings>();
+
+            var config = new Destiny2Config(Configuration["AppName"], Configuration["AppVersion"],
+                Configuration["AppId"], "http://andyschott.com", "andy@andyschott.com")
+            {
+                BaseUrl = bungie.BaseUrl,
+                ApiKey = bungie.ApiKey,
+            };
+            services.AddDestiny2(config);
+
+            services.AddBungieAuthentication(new AuthenticationConfiguration
+            {
+                LoginCookieName = bungie.LoginCookieName,
+                ClientId = bungie.ClientId,
+                ClientSecret = bungie.ClientSecret,
+                AuthorizationEndpoint = bungie.AuthorizationEndpoint,
+                TokenEndpoint = bungie.TokenEndpoint,
+                CallbackPath = "/signin-bungie/"
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,6 +81,7 @@ namespace Destiny2WeaponMods
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseAuthentication();
             app.UseCookiePolicy();
 
             app.UseMvc(routes =>
