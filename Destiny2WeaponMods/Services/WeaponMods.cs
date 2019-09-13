@@ -32,8 +32,8 @@ namespace Destiny2WeaponMods.Services
         {
             var manifestMods = await _manifest.LoadInventoryItemsWithCategory(WeaponModsDamageCategoryHash);
             var filteredMods = manifestMods.Where(mod =>
-                !mod.ItemCategoryHashes.Contains(DummiesCategoryHash) &&
-                !mod.DisplayProperties.Description.Contains("deprecated"));
+                !mod.ItemCategoryHashes.Contains(DummiesCategoryHash) && // some mods for weapon damage have this category (?)
+                !mod.DisplayProperties.Description.Contains("deprecated")); // year 1 mods
 
             return filteredMods;
         }

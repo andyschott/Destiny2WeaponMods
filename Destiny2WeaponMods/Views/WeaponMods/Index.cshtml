@@ -9,7 +9,17 @@
         <ul>
             @foreach(var mod in Model.WeaponMods)
             {
-                <li>@mod.DisplayProperties.Name</li>
+                <li>
+                    @if(mod.IsUnlocked)
+                    {
+                        <input type="checkbox" checked>
+                    }
+                    else
+                    {
+                        <input type="checkbox">
+                    }
+                    <img src="@mod.IconUrl" width="48" height="48">@mod.Name
+                </li>
             }
         </ul>
     </div>
