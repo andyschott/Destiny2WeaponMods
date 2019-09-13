@@ -20,9 +20,9 @@ namespace Destiny2WeaponMods.Controllers
 
             if(User.Identity.IsAuthenticated)
             {
-                _logger.LogInformation("User is already authenticated. Redirecting to Weapon Mods Index");
+                _logger.LogInformation("User is already authenticated. Redirecting to Accounts Index");
 
-                var url = Url.RouteUrl("WeaponModsIndex");
+                var url = Url.RouteUrl("AccountIndex");
                 return Redirect(url);
             }
 

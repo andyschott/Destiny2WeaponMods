@@ -1,3 +1,7 @@
+using System.Threading.Tasks;
+using Destiny2;
+using Destiny2WeaponMods.Models;
+using Destiny2WeaponMods.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,10 +11,23 @@ namespace Destiny2WeaponMods.Controllers
     [Authorize]
     public class WeaponModsController : Controller
     {
-        [HttpGet(Name = "WeaponModsIndex")]
-        public IActionResult Index()
+        private readonly IWeaponMods _weaponMods;
+
+        public WeaponModsController(IWeaponMods weaponMods)
         {
-            return View();
+            _weaponMods = weaponMods;
+        }
+
+        [HttpGet("{type}/{accountId}", Name = "WeaponModsIndex")]
+        public async Task<IActionResult> Index(BungieMembershipType type, long accountId)
+        {
+            var inventoryMods = await _weaponMods.GetModsFromInventory(type, accountId);
+
+            var model = new WeaponModsIndexViewModel
+            {
+                WeaponMods = inventoryMods,
+            };
+            return View(model);
         }
     }
 }

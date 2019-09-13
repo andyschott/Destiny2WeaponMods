@@ -1,5 +1,6 @@
 ﻿using Destiny2;
 using Destiny2WeaponMods.Helpers;
+using Destiny2WeaponMods.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -43,6 +44,8 @@ namespace Destiny2WeaponMods
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            services.AddHttpContextAccessor();
+
             services.Configure<BungieSettings>(Configuration.GetSection("Bungie"));
             var bungie = Configuration.GetSection("Bungie").Get<BungieSettings>();
 
@@ -63,6 +66,8 @@ namespace Destiny2WeaponMods
                 TokenEndpoint = bungie.TokenEndpoint,
                 CallbackPath = "/signin-bungie/"
             });
+
+            services.AddScoped<IWeaponMods, WeaponMods>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

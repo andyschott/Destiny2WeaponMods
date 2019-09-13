@@ -1,9 +1,16 @@
+@model WeaponModsIndexViewModel
+
 @{
     ViewData["Title"] = "Weapon Mods";
 }
 
 <div class="container">
     <div class="row">
-        <p>Weapon mods go here.</p>
+        <ul>
+            @foreach(var mod in Model.WeaponMods)
+            {
+                <li>@mod.DisplayProperties.Name</li>
+            }
+        </ul>
     </div>
 </div>
